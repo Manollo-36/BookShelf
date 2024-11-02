@@ -19,10 +19,11 @@ setup_db(app)
 
 def setup_db(app, database_path=database_path):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_path
-    print(f'DataBaSe:{database_path}')
+    #print(f'DataBaSe:{database_path}')
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    db.app = app
-    with app.app_context():        
+    app.config['SQLALCHEMY_ECHO'] = True     
+    with app.app_context():
+        db.app = app               
         db.init_app(app)
         db.create_all()
 
