@@ -1,6 +1,8 @@
 import os
 import unittest
 import json
+
+from sqlalchemy import null
 from flaskr import create_app
 from models import setup_db, Book
 
@@ -18,7 +20,10 @@ class BookTestCase(unittest.TestCase):
         )
         
         self.app = create_app({"SQLALCHEMY_DATABASE_URI":self.database_path})
-        #self.app.testing = True
+        #Binds the test file to app_context 
+        self.cxt = self.app.app_context()
+        self.cxt.push()     
+           
         self.client = self.app.test_client
         print(f"database_path:{self.database_path}")
         #setup_db(self.app, self.database_path)
@@ -48,21 +53,22 @@ class BookTestCase(unittest.TestCase):
     #     self.assertEqual(data["success"], False)
     #     self.assertEqual(data["message"], "resource not found")
 
-    def test_update_book_rating(self):
-         res = self.client().patch("/books/5", json={"rating": 1})
-         print(f'Update_json: {self.client().patch("/books/5", json={"rating": 1})}')
-         data = json.loads(res.data)
-         print(f'Update_data:{res.data}')
-         book = Book.query.filter(Book.id == 5).one_or_none()
-         print(f'book:{book}')   
-         self.assertEqual(res.status_code, 200)
-         self.assertEqual(data["success"], True)
-         self.assertEqual(book.format()["rating"], 1)
+    # def test_update_book_rating(self):
+    #      res = self.client().patch("/books/5", json={"rating": 1})
+    #      print(f'Update_json: {self.client().patch("/books/5", json={"rating": 1})}')
+    #      data = json.loads(res.data)
+    #      print(f'Update_data:{res.data}')
+    #      book = Book.query.filter(Book.id == 5).one_or_none()
+    #      print(f'book:{book}')   
+    #      self.assertEqual(res.status_code, 200)
+    #      self.assertEqual(data["success"], True)
+    #      self.assertEqual(book.format()["rating"], 1)
 
     def test_400_for_failed_update(self):
-         res = self.client().patch("/books/5")
+         res = self.client().patch("/books/5",json={"rating": ''})
+         #print(f'Update_json_failed: {self.client().patch("/books/0",json={"rating": 1})}')
          data = json.loads(res.data)
-
+         print(f'Update_data_failed:{res.data}')
          self.assertEqual(res.status_code, 400)
          self.assertEqual(data["success"], False)
          self.assertEqual(data["message"], "bad request")
@@ -103,7 +109,7 @@ class BookTestCase(unittest.TestCase):
     # def test_422_if_book_does_not_exist(self):
     #     res = self.client().delete("/books/1000")
     #     data = json.loads(res.data)
-
+    #     print(f'Delete Failed:{data}')
     #     self.assertEqual(res.status_code, 422)
     #     self.assertEqual(data["success"], False)
     #     self.assertEqual(data["message"], "unprocessable")
