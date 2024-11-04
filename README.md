@@ -182,7 +182,7 @@ PATCH /books/{book_id}
 Deployment N/A
 
 Authors
-Yours truly, Coach Caryn
+Emmanuel Varsakis
 
 Acknowledgements
-The awesome team at Udacity and all of the students, soon to be full stack extraordinaires!
+Becoming a full stack developer, is easier with Udacity!
