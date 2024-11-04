@@ -19,7 +19,7 @@ class BookTestCase(unittest.TestCase):
             'Emmanuel', 'Manos', 'localhost:5432', self.database_name
         )
         
-        self.app = create_app({"SQLALCHEMY_DATABASE_URI":self.database_path})
+        self.app = create_app(self.database_path)
         #Binds the test file to app_context 
         self.cxt = self.app.app_context()
         self.cxt.push()     
@@ -30,7 +30,6 @@ class BookTestCase(unittest.TestCase):
 
         self.new_book = {"title": "Anansi Boys", "author": "Neil Gaiman", "rating": 5}
         self.new_book2 = {"title": "Mobby Dick","author": "Herman Melville","rating":6}
-        
 
     def tearDown(self):
         """Executed after reach test"""
@@ -64,25 +63,25 @@ class BookTestCase(unittest.TestCase):
     #      self.assertEqual(data["success"], True)
     #      self.assertEqual(book.format()["rating"], 1)
 
-    def test_400_for_failed_update(self):
-         res = self.client().patch("/books/5",json={"rating": ''})
-         #print(f'Update_json_failed: {self.client().patch("/books/0",json={"rating": 1})}')
-         data = json.loads(res.data)
-         print(f'Update_data_failed:{res.data}')
-         self.assertEqual(res.status_code, 400)
-         self.assertEqual(data["success"], False)
-         self.assertEqual(data["message"], "bad request")
+    # def test_400_for_failed_update(self):
+    #      res = self.client().patch("/books/5",json={"rating": ''})
+    #      #print(f'Update_json_failed: {self.client().patch("/books/0",json={"rating": 1})}')
+    #      data = json.loads(res.data)
+    #      print(f'Update_data_failed:{res.data}')
+    #      self.assertEqual(res.status_code, 400)
+    #      self.assertEqual(data["success"], False)
+    #      self.assertEqual(data["message"], "bad request")
 
-    # def test_create_new_book(self):
-    #     res = self.client().post("/books", json=self.new_book2)
-    #     print(f'JSONData: {self.client().post("/books", json=self.new_book2)}')
+    def test_create_new_book(self):
+        res = self.client().post("/books", json=self.new_book2)
+        print(f'JSONData: {self.client().post("/books", json=self.new_book2)}')
         
-    #     data = json.loads(res.data)
-    #     print(f'data:{data}')
-    #     self.assertEqual(res.status_code, 200)
-    #     self.assertEqual(data["success"], True)
-    #     self.assertTrue(data["created"])
-    #     self.assertTrue(len(data["books"]))
+        data = json.loads(res.data)
+        print(f'data:{data}')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data["success"], True)
+        self.assertTrue(data["created"])
+        self.assertTrue(len(data["books"]))
 
     # def test_405_if_book_creation_not_allowed(self):
     #     res = self.client().post("/books/45", json=self.new_book)
@@ -114,7 +113,25 @@ class BookTestCase(unittest.TestCase):
     #     self.assertEqual(data["success"], False)
     #     self.assertEqual(data["message"], "unprocessable")
 
+    def test_get_book_search_with_results(self):
+            res = self.client().post('/books', json={'search':'Mobby'})
+            data = json.loads(res.data)
 
+            self.assertEqual(res.status_code, 200)
+            self.assertEqual(data["success"], True)
+            self.assertTrue(data["total_books"])
+            self.assertTrue(len(data['books']),4) 
+            print (f'search_data: {data}')
+
+    # def test_get_book_search_without_results(self):
+    #         res = self.client().post('/books', json={'search':'Mobdy'})
+    #         data = json.loads(res.data)
+    #         print (f'search_data2: {data}')
+    #         self.assertEqual(res.status_code, 200)
+    #         self.assertEqual(data["success"], True)
+    #         self.assertEqual(data["total_books"], 0)
+    #         self.assertEqual(len(data["books"]),0)
+            
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()

@@ -20,10 +20,13 @@ def paginate_books(request, selection):
     return current_books
 
 
-def create_app(test_config=None):
+def create_app( db_URI='',test_config=None):
     # create and configure the app
-    app = Flask(__name__)   
-    setup_db(app)
+    app = Flask(__name__) 
+    if db_URI:
+        setup_db(app,db_URI)
+    else:
+        setup_db(app)
     CORS(app)
 
     # CORS Headers
@@ -108,25 +111,36 @@ def create_app(test_config=None):
         new_title = body.get("title", None)
         new_author = body.get("author", None)
         new_rating = body.get("rating", None)
-
+        search= body.get("search",None)
 
 
         try:
-            book = Book(title=new_title, author=new_author, rating=new_rating)
-            print(f'book:{book}')
-            book.insert()
+            if search:
+                selection=Book.query.order_by(Book.id).filter(Book.title.ilike("%{}%".format(search)))
+                current_books=paginate_books(request,selection)
 
-            selection = Book.query.order_by(Book.id).all()
-            current_books = paginate_books(request, selection)
+                return jsonify(
+                    {
+                        "success": True,
+                        "books": current_books,
+                        "total_books": len(selection.all()),
+                    })
+            else:
+                book = Book(title=new_title, author=new_author, rating=new_rating)
+                print(f'book:{book}')
+                book.insert()
 
-            return jsonify(
-                {
-                    "success": True,
-                    "created": book.id,
-                    "books": current_books,
-                    "total_books": len(Book.query.all()),
-                }
-            )
+                selection = Book.query.order_by(Book.id).all()
+                current_books = paginate_books(request, selection)
+
+                return jsonify(
+                    {
+                        "success": True,
+                        "created": book.id,
+                        "books": current_books,
+                        "total_books": len(Book.query.all()),
+                    }
+                )
 
         except:
             abort(422)
